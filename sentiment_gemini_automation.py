@@ -365,28 +365,28 @@ def main():
     model_name = get_available_flash_model(api_key)
             
     # 2. Fetch Stream Video IDs and Titles
-    print(f"\n1. Fetching latest {LIMIT_VIDEOS} stream uploads from channel ID: {CHANNEL_ID}...")
+    print(f"\n1. Fetching latest {LIMIT_VIDEOS} 'ASN Belajar' stream uploads from channel ID: {CHANNEL_ID}...")
+    video_details = []
     try:
         videos = scrapetube.get_channel(channel_id=CHANNEL_ID, content_type="streams")
-        recent_videos = []
         for v in videos:
-            recent_videos.append(v)
-            if len(recent_videos) >= LIMIT_VIDEOS:
+            video_id = v.get("contentId")
+            title = v.get("metadata", {}).get("lockupMetadataViewModel", {}).get("title", {}).get("content", "Unknown Title")
+            
+            # Filter specifically for "ASN Belajar" streams
+            if "asn belajar" in title.lower():
+                video_details.append({"id": video_id, "title": title})
+                print(f"   [{len(video_details)}] ID: {video_id} | Title: {title}")
+                
+            if len(video_details) >= LIMIT_VIDEOS:
                 break
     except Exception as e:
         print(f"CRITICAL ERROR: Failed to retrieve video list: {e}")
         return
         
-    if not recent_videos:
-        print("No livestream videos found on the channel.")
+    if not video_details:
+        print("No matching 'ASN Belajar' livestream videos found on the channel.")
         return
-        
-    video_details = []
-    for idx, v in enumerate(recent_videos):
-        video_id = v.get("contentId")
-        title = v.get("metadata", {}).get("lockupMetadataViewModel", {}).get("title", {}).get("content", "Unknown Title")
-        video_details.append({"id": video_id, "title": title})
-        print(f"   [{idx+1}] ID: {video_id} | Title: {title}")
         
     all_records = []
     

@@ -329,22 +329,23 @@ def main():
     print(f"Using model: {model_name}")
     
     print("2. Fetching recent videos...")
+    video_details = []
     try:
         videos = scrapetube.get_channel(channel_id=CHANNEL_ID, content_type="streams")
-        recent_videos = []
         for v in videos:
-            recent_videos.append(v)
-            if len(recent_videos) >= LIMIT_VIDEOS:
+            video_id = v.get("contentId")
+            title = v.get("metadata", {}).get("lockupMetadataViewModel", {}).get("title", {}).get("content", "Unknown Title")
+            
+            # Filter specifically for "ASN Belajar" streams
+            if "asn belajar" in title.lower():
+                video_details.append({"id": video_id, "title": title})
+                print(f"   Found matching stream: {title} ({video_id})")
+                
+            if len(video_details) >= LIMIT_VIDEOS:
                 break
     except Exception as e:
         print(f"Error fetching channel stream: {e}")
         return
-        
-    video_details = []
-    for v in recent_videos:
-        video_id = v.get("contentId")
-        title = v.get("metadata", {}).get("lockupMetadataViewModel", {}).get("title", {}).get("content", "Unknown Title")
-        video_details.append({"id": video_id, "title": title})
         
     all_chats = []
     print(f"3. Processing chats for {len(video_details)} videos...")
