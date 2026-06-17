@@ -316,7 +316,7 @@ def download_chat_replay(video_id):
                     message_content = "".join([run.get("text", "") for run in message_runs])
                     time_offset = replay_action.get("videoOffsetTimeMsec")
                     try:
-                        time_seconds = float(time_offset) / 1000 if time_offset else 0
+                        time_seconds = int(round(float(time_offset) / 1000)) if time_offset else 0
                     except ValueError:
                         time_seconds = 0
                         
