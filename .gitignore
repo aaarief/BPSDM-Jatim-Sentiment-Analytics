@@ -1,0 +1,7 @@
+__pycache__/
+*.pyc
+.env
+# Ignore any Google Service Account credentials or general JSON credentials
+*.json
+# Ignore local CSV files if desired, but we want to commit the backup CSV file
+# bpsdm_gemini_sentiment_results.csv
