@@ -72,6 +72,104 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # -----------------------------------------------------------------------------
+# LANGUAGE SELECTOR & TRANSLATION DICTIONARY
+# -----------------------------------------------------------------------------
+lang_choice = st.sidebar.selectbox("🌐 Pilih Bahasa / Select Language", ["Bahasa Indonesia", "English"])
+
+if lang_choice == "Bahasa Indonesia":
+    t = {
+        "title": "🏛️ Dashboard Analisis Sentimen Live Chat YouTube",
+        "subtitle": "BPSDM Provinsi Jawa Timur — Portal Analisis Otomatis",
+        "last_updated_prefix": "Data diperbarui otomatis pada: **",
+        "status_title": "📅 Status Sistem:",
+        "last_sync": "Sinkronisasi ETL Terakhir",
+        "updated_schedule": "Diperbarui setiap Kamis pukul 13:00 WIB",
+        "select_webinar": "🎯 Pilih Video Webinar:",
+        "all_videos": "Semua Video",
+        "metadata_header": "📽️ Metadata Webinar Terproses",
+        "open_yt": "Buka YouTube",
+        "kpi_header": "📊 Indikator Kinerja Utama (KPI)",
+        "kpi1_label": "Total Chat Dianalisis",
+        "kpi1_help": "Jumlah total baris chat bersih yang berhasil diproses dari webinar aktif.",
+        "kpi2_label": "Kepuasan Aparatur",
+        "kpi2_help": "Persentase chat berkategori Positif (menunjukkan kepuasan, pujian, atau apresiasi).",
+        "kpi3_label": "Tingkat Keluhan",
+        "kpi3_help": "Persentase chat berkategori Negatif (menunjukkan masalah teknis, keluhan, atau kendala pendaftaran).",
+        "charts_header": "🍰 Distribusi & Tren Sentimen",
+        "donut_header": "🍩 Komposisi Sentimen (Keseluruhan)",
+        "bar_header": "📊 Perbandingan Porsi Sentimen per Webinar",
+        "bar_x": "Judul Webinar",
+        "bar_y": "Porsi Persentase (%)",
+        "timeline_header": "📈 Tren Sentimen Linimasa Webinar (Jendela 5 Menit)",
+        "timeline_toggle": "🔍 Isolasikan dan tampilkan hanya linimasa Sentimen Negatif (Keluhan)",
+        "timeline_x": "Waktu Berjalan Webinar (Menit)",
+        "timeline_y": "Jumlah Pesan",
+        "no_data": "Data tidak tersedia untuk pilihan ini.",
+        "ppid_header": "🚨 Ruang Kendali PPID: Analisis Keluhan & Aksi Tindak Lanjut",
+        "obstacles_header": "🏷️ Kata Kunci / Hambatan Utama pada Sentimen Negatif",
+        "no_negatives": "🎉 Tidak ada keluhan yang ditemukan untuk pilihan ini!",
+        "not_enough_keywords": "Volume kata kunci tidak cukup untuk dianalisis.",
+        "urgent_table_header": "📋 Tabel Keluhan & Masukan Mendesak (Membutuhkan Perhatian PPID)",
+        "no_complaints_success": "🎉 Pertahankan kinerja baik! Tidak ada keluhan yang membutuhkan perhatian.",
+        "search_header": "🔍 Cari Riwayat Percakapan",
+        "search_input_label": "Masukkan kata kunci untuk mencari database chat (contoh: 'suara', 'materi', 'pemateri'):",
+        "col_timestamp": "Waktu",
+        "col_username": "Nama Pengguna",
+        "col_message": "Pesan",
+        "col_sentiment": "Sentimen",
+        "col_title": "Judul Video",
+        "system_status": "Status Sistem"
+    }
+    sentiment_map = {"Positive": "Positif", "Negative": "Negatif", "Neutral": "Netral"}
+    color_map = {"Positif": "#98c379", "Negatif": "#e06c75", "Netral": "#abb2bf"}
+else:
+    t = {
+        "title": "🏛️ YouTube Live Chat Sentiment Dashboard",
+        "subtitle": "BPSDM Provinsi Jawa Timur — Automated Analytics Portal",
+        "last_updated_prefix": "Data automatically updated on: **",
+        "status_title": "📅 System Status:",
+        "last_sync": "Last ETL Sync",
+        "updated_schedule": "Updated every Thursday at 13:00 WIB",
+        "select_webinar": "🎯 Select Webinar Video:",
+        "all_videos": "All Videos",
+        "metadata_header": "📽️ Processed Webinar Metadata",
+        "open_yt": "Open YouTube",
+        "kpi_header": "📊 Key Performance Indicators (KPIs)",
+        "kpi1_label": "Total Chats Analyzed",
+        "kpi1_help": "Total number of clean chat lines successfully processed from the active webinars.",
+        "kpi2_label": "Apparatus Satisfaction Rate",
+        "kpi2_help": "Percentage of chats classified as Positive (representing satisfaction, praise, or appreciation).",
+        "kpi3_label": "Complaint Rate",
+        "kpi3_help": "Percentage of chats classified as Negative (representing technical issues, complaints, or registration problems).",
+        "charts_header": "🍰 Sentiment Distribution & Trend Chart",
+        "donut_header": "🍩 Sentiment Composition (Overall)",
+        "bar_header": "📊 Sentiment Portion Comparison per Webinar",
+        "bar_x": "Webinar Title",
+        "bar_y": "Percentage Portion (%)",
+        "timeline_header": "📈 Webinar Timeline Sentiment Trend (5-Minute Windows)",
+        "timeline_toggle": "🔍 Isolate and display only Negative Sentiment (Complaints) timeline",
+        "timeline_x": "Webinar Elapsed Time (Minutes)",
+        "timeline_y": "Message Count",
+        "no_data": "No data available for the active selection.",
+        "ppid_header": "🚨 PPID Control Room: Complaint Analysis & Action Portal",
+        "obstacles_header": "🏷️ Top Obstacles / Keywords in Negative Sentiment",
+        "no_negatives": "🎉 No negative feedback found for this selection!",
+        "not_enough_keywords": "Not enough keyword volume to parse obstacles.",
+        "urgent_table_header": "📋 Urgent Complaints & Feedback Table (Requires PPID Attention)",
+        "no_complaints_success": "🎉 Keep up the good work! No complaints require attention.",
+        "search_header": "🔍 Search Conversational Records",
+        "search_input_label": "Enter keywords to search chat database (e.g. 'suara', 'materi', 'pemateri'):",
+        "col_timestamp": "Timestamp",
+        "col_username": "Username",
+        "col_message": "Pesan",
+        "col_sentiment": "Sentiment",
+        "col_title": "Video Title",
+        "system_status": "System Status"
+    }
+    sentiment_map = {"Positive": "Positive", "Negative": "Negative", "Neutral": "Neutral"}
+    color_map = {"Positive": "#98c379", "Negative": "#e06c75", "Neutral": "#abb2bf"}
+
+# -----------------------------------------------------------------------------
 # DYNAMIC TIMESTAMP HELPER
 # -----------------------------------------------------------------------------
 def get_last_updated_time():
@@ -79,6 +177,16 @@ def get_last_updated_time():
     if os.path.exists(local_csv_path):
         mtime = os.path.getmtime(local_csv_path)
         dt = datetime.datetime.fromtimestamp(mtime, tz=ZoneInfo('Asia/Jakarta'))
+        
+        # Translate weekday if Bahasa Indonesia is selected
+        if lang_choice == "Bahasa Indonesia":
+            indonesian_days = {
+                "Monday": "Senin", "Tuesday": "Selasa", "Wednesday": "Rabu",
+                "Thursday": "Kamis", "Friday": "Jumat", "Saturday": "Sabtu", "Sunday": "Minggu"
+            }
+            day_en = dt.strftime("%A")
+            day_id = indonesian_days.get(day_en, day_en)
+            return dt.strftime(f"{day_id}, %d %B %Y, %H:%M WIB")
         return dt.strftime("%A, %d %B %Y, %H:%M WIB")
     
     # Fallback calculation if file info is missing
@@ -88,6 +196,9 @@ def get_last_updated_time():
     if now.weekday() == 3 and now.hour < 13:
         last_thursday = last_thursday - datetime.timedelta(days=7)
     last_thursday_13 = last_thursday.replace(hour=13, minute=0, second=0, microsecond=0)
+    
+    if lang_choice == "Bahasa Indonesia":
+        return last_thursday_13.strftime("Kamis, %d %B %Y, 13:00 WIB")
     return last_thursday_13.strftime("%A, %d %B %Y, 13:00 WIB")
 
 # -----------------------------------------------------------------------------
@@ -115,18 +226,30 @@ def load_data():
             records = worksheet.get_all_records()
             if records:
                 df = pd.DataFrame(records)
-                st.sidebar.success("⚡ Loaded live from Google Sheets Cloud!")
+                if lang_choice == "Bahasa Indonesia":
+                    st.sidebar.success("⚡ Data dimuat langsung dari Google Sheets Cloud!")
+                else:
+                    st.sidebar.success("⚡ Loaded live from Google Sheets Cloud!")
                 return df
         except Exception as e:
-            st.sidebar.warning(f"Could not connect to Google Sheets ({e}). Using local fallback...")
+            if lang_choice == "Bahasa Indonesia":
+                st.sidebar.warning(f"Gagal menghubungkan ke Google Sheets ({e}). Menggunakan cadangan lokal...")
+            else:
+                st.sidebar.warning(f"Could not connect to Google Sheets ({e}). Using local fallback...")
             
     # Fallback to local CSV file
     if os.path.exists(local_csv_path):
         df = pd.read_csv(local_csv_path)
-        st.sidebar.info("📂 Running on offline cached backup (Local CSV).")
+        if lang_choice == "Bahasa Indonesia":
+            st.sidebar.info("📂 Menggunakan cadangan data lokal (Local CSV).")
+        else:
+            st.sidebar.info("📂 Running on offline cached backup (Local CSV).")
         return df
     else:
-        st.sidebar.error("❌ No data source found. Execute the ETL pipeline to generate results.")
+        if lang_choice == "Bahasa Indonesia":
+            st.sidebar.error("❌ Sumber data tidak ditemukan. Jalankan pipeline ETL terlebih dahulu.")
+        else:
+            st.sidebar.error("❌ No data source found. Execute the ETL pipeline to generate results.")
         return pd.DataFrame()
 
 df = load_data()
@@ -183,30 +306,34 @@ def get_word_frequencies(messages):
 # -----------------------------------------------------------------------------
 # SIDEBAR CONTENT (Metadata Context & Filters)
 # -----------------------------------------------------------------------------
-st.sidebar.title("🏛️ BPSDM Jatim Control Panel")
+st.sidebar.title(t["title"])
 
 last_updated = get_last_updated_time()
 st.sidebar.markdown(f"""
-**📅 System Status:**
-*   **Last ETL Sync:**
+**{t["status_title"]}**
+*   **{t["last_sync"]}:**
     `{last_updated}`
-*   *Updated every Thursday at 13:00 WIB*
+*   *{t["updated_schedule"]}*
 """)
 
 if not df.empty:
     # 1. Video Selector Filter
-    titles = ["All Videos"] + list(df["Video Title"].unique())
-    selected_title = st.sidebar.selectbox("🎯 Select Webinar Video:", titles)
+    titles = [t["all_videos"]] + list(df["Video Title"].unique())
+    selected_title = st.sidebar.selectbox(t["select_webinar"], titles)
     
     # Apply filter based on selection
-    if selected_title != "All Videos":
+    if selected_title != t["all_videos"]:
         filtered_df = df[df["Video Title"] == selected_title]
     else:
         filtered_df = df
 
+    # Map sentiments to display language
+    filtered_df = filtered_df.copy()
+    filtered_df["Sentiment_Display"] = filtered_df["Sentiment"].map(sentiment_map)
+
     # 2. Metadata Information Block
     st.sidebar.write("---")
-    st.sidebar.markdown("### 📽️ Processed Webinar Metadata")
+    st.sidebar.markdown(f"### {t['metadata_header']}")
     
     # Get the 3 unique webinars from the active dataframe
     webinar_metadata = df[["Video Title", "Video ID"]].drop_duplicates().head(3)
@@ -215,20 +342,20 @@ if not df.empty:
         st.sidebar.markdown(f"""
         **🎬 {title_truncated}**
         *   **ID:** `{row['Video ID']}`
-        *   **Link:** [Open YouTube](https://youtube.com/watch?v={row['Video ID']})
+        *   **Link:** [{t['open_yt']}](https://youtube.com/watch?v={row['Video ID']})
         """)
         
     # -------------------------------------------------------------------------
     # MAIN DASHBOARD PAGE
     # -------------------------------------------------------------------------
-    st.title("🏛️ YouTube Live Chat Sentiment Dashboard")
-    st.subheader("BPSDM Provinsi Jawa Timur — Automated Analytics Portal")
-    st.markdown(f"*Data automatically updated on: **{last_updated}***")
+    st.title(t["title"])
+    st.subheader(t["subtitle"])
+    st.markdown(f"*{t['last_updated_prefix']}{last_updated}***")
     
     # -------------------------------------------------------------------------
     # SECTION 1: KEY PERFORMANCE INDICATORS (KPIs)
     # -------------------------------------------------------------------------
-    st.write("### 📊 Key Performance Indicators (KPIs)")
+    st.write(f"### {t['kpi_header']}")
     total_chats = len(filtered_df)
     
     # Sentiment calculations
@@ -242,21 +369,21 @@ if not df.empty:
     col_kpi1, col_kpi2, col_kpi3 = st.columns(3)
     with col_kpi1:
         st.metric(
-            label="Total Chats Analyzed", 
+            label=t["kpi1_label"], 
             value=f"{total_chats:,}",
-            help="Total number of clean chat lines successfully processed from the active webinars."
+            help=t["kpi1_help"]
         )
     with col_kpi2:
         st.metric(
-            label="Apparatus Satisfaction Rate", 
+            label=t["kpi2_label"], 
             value=f"{pos_pct:.1f}%",
-            help="Percentage of chats classified as Positive (representing satisfaction, praise, or appreciation)."
+            help=t["kpi2_help"]
         )
     with col_kpi3:
         st.metric(
-            label="Complaint Rate", 
+            label=t["kpi3_label"], 
             value=f"{neg_pct:.1f}%",
-            help="Percentage of chats classified as Negative (representing technical issues, complaints, or registration problems)."
+            help=t["kpi3_help"]
         )
         
     st.write("---")
@@ -264,18 +391,18 @@ if not df.empty:
     # -------------------------------------------------------------------------
     # SECTION 2: SENTIMENT DISTRIBUTION AND TREND CHARTS
     # -------------------------------------------------------------------------
-    st.write("### 🍰 Sentiment Distribution & Trend Chart")
+    st.write(f"### {t['charts_header']}")
     
     col_vis_left, col_vis_right = st.columns([1, 1])
     
     with col_vis_left:
-        st.write("#### 🍩 Sentiment Composition (Overall)")
+        st.write(f"#### {t['donut_header']}")
         if total_chats > 0:
             fig_donut = px.pie(
                 filtered_df,
-                names="Sentiment",
-                color="Sentiment",
-                color_discrete_map={"Positive": "#98c379", "Negative": "#e06c75", "Neutral": "#abb2bf"},
+                names="Sentiment_Display",
+                color="Sentiment_Display",
+                color_discrete_map=color_map,
                 hole=0.45
             )
             fig_donut.update_layout(
@@ -286,23 +413,23 @@ if not df.empty:
             )
             st.plotly_chart(fig_donut, use_container_width=True)
         else:
-            st.info("No data available for the active selection.")
+            st.info(t["no_data"])
             
     with col_vis_right:
-        st.write("#### 📊 Sentiment Portion Comparison per Webinar")
+        st.write(f"#### {t['bar_header']}")
         if total_chats > 0:
             # Group by Video Title and Sentiment, calculate percentage
-            comp_df = filtered_df.groupby(["Video Title", "Sentiment"]).size().reset_index(name="Count")
+            comp_df = filtered_df.groupby(["Video Title", "Sentiment_Display"]).size().reset_index(name="Count")
             comp_df["Percentage"] = comp_df.groupby("Video Title")["Count"].transform(lambda x: (x / x.sum()) * 100)
             
             fig_comp = px.bar(
                 comp_df,
                 x="Video Title",
                 y="Percentage",
-                color="Sentiment",
-                color_discrete_map={"Positive": "#98c379", "Negative": "#e06c75", "Neutral": "#abb2bf"},
+                color="Sentiment_Display",
+                color_discrete_map=color_map,
                 barmode="group",
-                labels={"Video Title": "Webinar Title", "Percentage": "Percentage Portion (%)"}
+                labels={"Video Title": t["bar_x"], "Percentage": t["bar_y"], "Sentiment_Display": t["col_sentiment"]}
             )
             fig_comp.update_layout(
                 paper_bgcolor='rgba(0,0,0,0)',
@@ -315,32 +442,34 @@ if not df.empty:
             )
             st.plotly_chart(fig_comp, use_container_width=True)
         else:
-            st.info("No data available for the active selection.")
+            st.info(t["no_data"])
             
     # Timeline Trend Analysis
-    st.write("#### 📈 Webinar Timeline Sentiment Trend (5-Minute Windows)")
+    st.write(f"#### {t['timeline_header']}")
     if total_chats > 0:
         timeline_df = filtered_df.copy()
         # Convert seconds to 5-minute interval blocks
         timeline_df["Minute"] = (timeline_df["Waktu"] // 300) * 5
         
-        trend_df = timeline_df.groupby(["Minute", "Sentiment"]).size().reset_index(name="Count")
+        trend_df = timeline_df.groupby(["Minute", "Sentiment_Display"]).size().reset_index(name="Count")
         
         # Checkbox to isolate and view only complaints/negative trends
-        isolate_complaints = st.checkbox("🔍 Isolate and display only Negative Sentiment (Complaints) timeline")
+        isolate_complaints = st.checkbox(t["timeline_toggle"])
+        
+        neg_label = sentiment_map["Negative"]
         if isolate_complaints:
-            trend_df = trend_df[trend_df["Sentiment"] == "Negative"]
-            color_map = {"Negative": "#e06c75"}
+            trend_df = trend_df[trend_df["Sentiment_Display"] == neg_label]
+            trend_color_map = {neg_label: "#e06c75"}
         else:
-            color_map = {"Positive": "#98c379", "Negative": "#e06c75", "Neutral": "#abb2bf"}
+            trend_color_map = color_map
             
         fig_line = px.line(
             trend_df,
             x="Minute",
             y="Count",
-            color="Sentiment",
-            color_discrete_map=color_map,
-            labels={"Minute": "Webinar Elapsed Time (Minutes)", "Count": "Message Count"},
+            color="Sentiment_Display",
+            color_discrete_map=trend_color_map,
+            labels={"Minute": t["timeline_x"], "Count": t["timeline_y"], "Sentiment_Display": t["col_sentiment"]},
             markers=True
         )
         fig_line.update_layout(
@@ -353,14 +482,14 @@ if not df.empty:
         )
         st.plotly_chart(fig_line, use_container_width=True)
     else:
-        st.info("No data available for the active selection.")
+        st.info(t["no_data"])
         
     st.write("---")
     
     # -------------------------------------------------------------------------
     # SECTION 3: PPID CONTROL ROOM (COMPLAINT ANALYSIS)
     # -------------------------------------------------------------------------
-    st.write("### 🚨 PPID Control Room: Complaint Analysis & Action Portal")
+    st.write(f"### {t['ppid_header']}")
     
     col_ctrl_left, col_ctrl_right = st.columns([2, 3])
     
@@ -368,17 +497,20 @@ if not df.empty:
     negative_df = filtered_df[filtered_df["Sentiment"] == "Negative"].copy()
     
     with col_ctrl_left:
-        st.write("#### 🏷️ Top Obstacles / Keywords in Negative Sentiment")
+        st.write(f"#### {t['obstacles_header']}")
         if not negative_df.empty:
             neg_words = get_word_frequencies(negative_df["Pesan"])
             if neg_words:
                 w_df = pd.DataFrame(neg_words, columns=["Keyword", "Frequency"])
+                # Translate columns for chart labels
+                w_df = w_df.rename(columns={"Keyword": t["col_timestamp"], "Frequency": t["timeline_y"]})
+                
                 fig_neg_bar = px.bar(
                     w_df,
-                    x="Frequency",
-                    y="Keyword",
+                    x=t["timeline_y"],
+                    y=t["col_timestamp"],
                     orientation="h",
-                    color="Frequency",
+                    color=t["timeline_y"],
                     color_continuous_scale=px.colors.sequential.Reds
                 )
                 fig_neg_bar.update_layout(
@@ -391,41 +523,51 @@ if not df.empty:
                 )
                 st.plotly_chart(fig_neg_bar, use_container_width=True)
             else:
-                st.info("Not enough keyword volume to parse obstacles.")
+                st.info(t["not_enough_keywords"])
         else:
-            st.success("🎉 No negative feedback found for this selection!")
+            st.success(t["no_negatives"])
             
     with col_ctrl_right:
-        st.write("#### 📋 Urgent Complaints & Feedback Table (Requires PPID Attention)")
+        st.write(f"#### {t['urgent_table_header']}")
         if not negative_df.empty:
             # Format time offset to readable MM:SS
             negative_df["Timestamp"] = negative_df["Waktu"].apply(format_time_offset)
             
             # Display latest/most urgent 10 negative chats
             display_cols = ["Timestamp", "Username", "Pesan", "Video Title"]
+            df_to_show = negative_df[display_cols].head(10)
+            
+            # Translate display columns headers
+            df_to_show.columns = [t["col_timestamp"], t["col_username"], t["col_message"], t["col_title"]]
+            
             st.dataframe(
-                negative_df[display_cols].head(10),
+                df_to_show,
                 use_container_width=True,
                 hide_index=True
             )
         else:
-            st.success("🎉 Keep up the good work! No complaints require attention.")
+            st.success(t["no_complaints_success"])
             
     st.write("---")
     
     # -------------------------------------------------------------------------
     # SECTION 4: CONVERSATIONAL SEARCH RECORDS
     # -------------------------------------------------------------------------
-    st.write("### 🔍 Search Conversational Records")
-    search_query = st.text_input("Enter keywords to search chat database (e.g. 'suara', 'materi', 'pemateri'):")
+    st.write(f"### {t['search_header']}")
+    search_query = st.text_input(t["search_input_label"])
     
     display_df = filtered_df.copy()
     if search_query:
         display_df = display_df[display_df["Pesan"].str.contains(search_query, case=False, na=False)]
         
     display_df["Timestamp"] = display_df["Waktu"].apply(format_time_offset)
+    df_search_show = display_df[["Timestamp", "Username", "Pesan", "Sentiment_Display", "Video Title"]]
+    
+    # Translate search results table columns headers
+    df_search_show.columns = [t["col_timestamp"], t["col_username"], t["col_message"], t["col_sentiment"], t["col_title"]]
+    
     st.dataframe(
-        display_df[["Timestamp", "Username", "Pesan", "Sentiment", "Video Title"]],
+        df_search_show,
         use_container_width=True,
         hide_index=True
     )
