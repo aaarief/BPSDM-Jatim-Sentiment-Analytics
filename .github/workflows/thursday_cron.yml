@@ -1,9 +1,9 @@
-name: BPSDM Jatim Sunday ETL Pipeline
+name: BPSDM Jatim Thursday ETL Pipeline
 
 on:
   schedule:
-    # Run every Sunday at 23:00 UTC
-    - cron: '0 23 * * 0'
+    # Run every Thursday at 13:00 WIB (06:00 UTC)
+    - cron: '0 6 * * 4'
   workflow_dispatch:
     # Allows manual triggering of the workflow from the GitHub Actions tab
 

@@ -83,10 +83,12 @@ def get_last_updated_time():
     
     # Fallback calculation if file info is missing
     now = datetime.datetime.now(ZoneInfo('Asia/Jakarta'))
-    days_to_last_sunday = (now.weekday() - 6) % 7
-    last_sunday = now - datetime.timedelta(days=days_to_last_sunday)
-    last_sunday_23 = last_sunday.replace(hour=23, minute=0, second=0, microsecond=0)
-    return last_sunday_23.strftime("%A, %d %B %Y, 23:00 WIB")
+    days_to_last_thursday = (now.weekday() - 3) % 7
+    last_thursday = now - datetime.timedelta(days=days_to_last_thursday)
+    if now.weekday() == 3 and now.hour < 13:
+        last_thursday = last_thursday - datetime.timedelta(days=7)
+    last_thursday_13 = last_thursday.replace(hour=13, minute=0, second=0, microsecond=0)
+    return last_thursday_13.strftime("%A, %d %B %Y, 13:00 WIB")
 
 # -----------------------------------------------------------------------------
 # DATA LOADING FUNCTION (Google Sheets with local fallback)
@@ -188,7 +190,7 @@ st.sidebar.markdown(f"""
 **📅 System Status:**
 *   **Last ETL Sync:**
     `{last_updated}`
-*   *Updated every Sunday at 23:00 WIB*
+*   *Updated every Thursday at 13:00 WIB*
 """)
 
 if not df.empty:
