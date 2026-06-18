@@ -1,9 +1,4 @@
-# pipeline.py
-# -----------------------------------------------------------------------------
-# Sunday ETL Pipeline: Scraping, Cleansing, Gemini Sentiment Analysis, and Cloud DB Upload
 # BPSDM Jatim Data Science Project
-# -----------------------------------------------------------------------------
-
 import os
 import re
 import json
