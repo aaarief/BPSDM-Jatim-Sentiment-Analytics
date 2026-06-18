@@ -89,12 +89,15 @@ if lang_choice == "Bahasa Indonesia":
         "metadata_header": "📽️ Metadata Webinar Terproses",
         "open_yt": "Buka YouTube",
         "kpi_header": "📊 Indikator Kinerja Utama (KPI)",
-        "kpi1_label": "Total Chat Dianalisis",
-        "kpi1_help": "Jumlah total baris chat bersih yang berhasil diproses dari webinar aktif.",
+        "kpi1_label": "Total Diskusi Aktif",
+        "kpi1_help": "Jumlah baris chat aktif (tidak termasuk spam absen/salam) yang berhasil diproses.",
+        "kpi_present_label": "Kehadiran Peserta",
+        "kpi_present_help": "Jumlah baris chat yang diidentifikasi sebagai absen presensi atau salam formal.",
         "kpi2_label": "Kepuasan Aparatur",
-        "kpi2_help": "Persentase chat berkategori Positif (menunjukkan kepuasan, pujian, atau apresiasi).",
+        "kpi2_help": "Persentase chat berkategori Positif (menunjukkan kepuasan, pujian, atau apresiasi) dari total diskusi aktif.",
         "kpi3_label": "Tingkat Keluhan",
-        "kpi3_help": "Persentase chat berkategori Negatif (menunjukkan masalah teknis, keluhan, atau kendala pendaftaran).",
+        "kpi3_help": "Persentase chat berkategori Negatif (menunjukkan masalah teknis, keluhan, atau kendala pendaftaran) dari total diskusi aktif.",
+        "filter_spam_toggle": "Saring Out Spam Absen / Salam",
         "charts_header": "🍰 Distribusi & Tren Sentimen",
         "donut_header": "🍩 Komposisi Sentimen (Keseluruhan)",
         "bar_header": "📊 Perbandingan Porsi Sentimen per Webinar",
@@ -120,8 +123,19 @@ if lang_choice == "Bahasa Indonesia":
         "col_title": "Judul Video",
         "system_status": "Status Sistem"
     }
-    sentiment_map = {"Positive": "Positif", "Negative": "Negatif", "Neutral": "Netral"}
-    color_map = {"Positif": "#98c379", "Negatif": "#e06c75", "Netral": "#abb2bf"}
+    sentiment_map = {
+        "Positive": "Positif", 
+        "Negative": "Negatif", 
+        "Neutral": "Diskusi Netral",
+        "Neutral - Discussion": "Diskusi Netral",
+        "Attendance / Greeting": "Presensi / Salam"
+    }
+    color_map = {
+        "Positif": "#98c379", 
+        "Negatif": "#e06c75", 
+        "Diskusi Netral": "#abb2bf",
+        "Presensi / Salam": "#e5c07b"
+    }
 else:
     t = {
         "title": "🏛️ YouTube Live Chat Sentiment Dashboard",
@@ -135,12 +149,15 @@ else:
         "metadata_header": "📽️ Processed Webinar Metadata",
         "open_yt": "Open YouTube",
         "kpi_header": "📊 Key Performance Indicators (KPIs)",
-        "kpi1_label": "Total Chats Analyzed",
-        "kpi1_help": "Total number of clean chat lines successfully processed from the active webinars.",
+        "kpi1_label": "Total Active Chats",
+        "kpi1_help": "Total number of active chat lines (excluding attendance/greetings spam) processed.",
+        "kpi_present_label": "Total Participants Present",
+        "kpi_present_help": "Total number of chat entries identified as attendance check-ins or formal greetings.",
         "kpi2_label": "Apparatus Satisfaction Rate",
-        "kpi2_help": "Percentage of chats classified as Positive (representing satisfaction, praise, or appreciation).",
+        "kpi2_help": "Percentage of chats classified as Positive (representing satisfaction, praise, or appreciation) out of active chats.",
         "kpi3_label": "Complaint Rate",
-        "kpi3_help": "Percentage of chats classified as Negative (representing technical issues, complaints, or registration problems).",
+        "kpi3_help": "Percentage of chats classified as Negative (representing technical issues, complaints, or registration problems) out of active chats.",
+        "filter_spam_toggle": "Filter Out Attendance Spam",
         "charts_header": "🍰 Sentiment Distribution & Trend Chart",
         "donut_header": "🍩 Sentiment Composition (Overall)",
         "bar_header": "📊 Sentiment Portion Comparison per Webinar",
@@ -166,8 +183,19 @@ else:
         "col_title": "Video Title",
         "system_status": "System Status"
     }
-    sentiment_map = {"Positive": "Positive", "Negative": "Negative", "Neutral": "Neutral"}
-    color_map = {"Positive": "#98c379", "Negative": "#e06c75", "Neutral": "#abb2bf"}
+    sentiment_map = {
+        "Positive": "Positive", 
+        "Negative": "Negative", 
+        "Neutral": "Neutral - Discussion",
+        "Neutral - Discussion": "Neutral - Discussion",
+        "Attendance / Greeting": "Attendance / Greeting"
+    }
+    color_map = {
+        "Positive": "#98c379", 
+        "Negative": "#e06c75", 
+        "Neutral - Discussion": "#abb2bf",
+        "Attendance / Greeting": "#e5c07b"
+    }
 
 # -----------------------------------------------------------------------------
 # DYNAMIC TIMESTAMP HELPER
@@ -260,7 +288,7 @@ if not df.empty:
         "Waktu": 0,
         "Username": "Unknown",
         "Pesan": "",
-        "Sentiment": "Neutral",
+        "Sentiment": "Neutral - Discussion",
         "Video ID": "Unknown",
         "Video Title": "Webinar Live Chat"
     }
@@ -327,11 +355,23 @@ if not df.empty:
     else:
         filtered_df = df
 
+    # Keep a copy of unfiltered selection to calculate attendance metrics
+    raw_unfiltered_df = filtered_df.copy()
+    
+    # Calculate attendance/greeting count
+    attendance_count = raw_unfiltered_df[raw_unfiltered_df["Sentiment"] == "Attendance / Greeting"].shape[0]
+
+    # 2. Filter Spam Toggle
+    filter_spam = st.sidebar.checkbox(t["filter_spam_toggle"], value=True)
+    if filter_spam:
+        filtered_df = filtered_df[filtered_df["Sentiment"] != "Attendance / Greeting"]
+
     # Map sentiments to display language
     filtered_df = filtered_df.copy()
     filtered_df["Sentiment_Display"] = filtered_df["Sentiment"].map(sentiment_map)
+    raw_unfiltered_df["Sentiment_Display"] = raw_unfiltered_df["Sentiment"].map(sentiment_map)
 
-    # 2. Metadata Information Block
+    # 3. Metadata Information Block
     st.sidebar.write("---")
     st.sidebar.markdown(f"### {t['metadata_header']}")
     
@@ -358,7 +398,7 @@ if not df.empty:
     st.write(f"### {t['kpi_header']}")
     total_chats = len(filtered_df)
     
-    # Sentiment calculations
+    # Sentiment calculations (uses active filtered dataset)
     counts = filtered_df["Sentiment"].value_counts()
     pos_count = counts.get("Positive", 0)
     neg_count = counts.get("Negative", 0)
@@ -366,7 +406,7 @@ if not df.empty:
     pos_pct = (pos_count / total_chats * 100) if total_chats > 0 else 0
     neg_pct = (neg_count / total_chats * 100) if total_chats > 0 else 0
     
-    col_kpi1, col_kpi2, col_kpi3 = st.columns(3)
+    col_kpi1, col_kpi2, col_kpi3, col_kpi4 = st.columns(4)
     with col_kpi1:
         st.metric(
             label=t["kpi1_label"], 
@@ -375,11 +415,17 @@ if not df.empty:
         )
     with col_kpi2:
         st.metric(
+            label=t["kpi_present_label"], 
+            value=f"{attendance_count:,}",
+            help=t["kpi_present_help"]
+        )
+    with col_kpi3:
+        st.metric(
             label=t["kpi2_label"], 
             value=f"{pos_pct:.1f}%",
             help=t["kpi2_help"]
         )
-    with col_kpi3:
+    with col_kpi4:
         st.metric(
             label=t["kpi3_label"], 
             value=f"{neg_pct:.1f}%",
@@ -491,7 +537,7 @@ if not df.empty:
     # -------------------------------------------------------------------------
     st.write(f"### {t['ppid_header']}")
     
-    col_ctrl_left, col_ctrl_right = st.columns([2, 3])
+    col_ctrl_left, col_ctrl_right = st.columns([1, 1])
     
     # Filter dataset for negative complaints
     negative_df = filtered_df[filtered_df["Sentiment"] == "Negative"].copy()
@@ -502,7 +548,6 @@ if not df.empty:
             neg_words = get_word_frequencies(negative_df["Pesan"])
             if neg_words:
                 w_df = pd.DataFrame(neg_words, columns=["Keyword", "Frequency"])
-                # Translate columns for chart labels
                 w_df = w_df.rename(columns={"Keyword": t["col_timestamp"], "Frequency": t["timeline_y"]})
                 
                 fig_neg_bar = px.bar(

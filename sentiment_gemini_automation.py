@@ -149,12 +149,13 @@ def analyze_sentiment_gemini_batch(messages, api_key, model_name):
     
     prompt = f"""
     You are an expert Indonesian sentiment analysis model.
-    Classify the sentiment of the following list of YouTube live chat comments into one of these categories: "Positive", "Negative", or "Neutral".
+    Classify the sentiment of the following list of YouTube live chat comments into one of these four categories: "Positive", "Negative", "Neutral - Discussion", or "Attendance / Greeting".
     
     Guidelines:
-    - "Positive": Praise for the speaker/host, webinar contents, or clear stream quality.
-    - "Negative": Technical issues (sound cuts, lag, pixelated video), complaints about registration links, or general dissatisfaction.
-    - "Neutral": General questions, topical discussions, or general statements unrelated to stream quality or speaker appreciation.
+    - "Positive": Praise or appreciation for the event, speaker, host, or webinar contents.
+    - "Negative": Technical issues (e.g., sound/audio cuts, lag, bad stream quality, registration link error, certificate issues) or critical feedback/complaints.
+    - "Neutral - Discussion": Valid questions, opinions, discussions, or neutral statements regarding the webinar topic or material.
+    - "Attendance / Greeting": Names, institutions, attendance check-ins (e.g., "hadir", "hadir pak", "siap menyimak", "ikut memantau", "nyimak"), or formal/informal greetings (e.g., "selamat pagi", "assalamualaikum", "halo"), including common Indonesian typos/variations.
     
     Input data:
     {json.dumps(batch_data, ensure_ascii=False)}
@@ -162,8 +163,10 @@ def analyze_sentiment_gemini_batch(messages, api_key, model_name):
     Response Format:
     Return your response strictly as a JSON array of objects matching the input IDs. Example:
     [
-      {{"id": 0, "sentiment": "Positive"}},
-      {{"id": 1, "sentiment": "Negative"}}
+      {{"id": 0, "sentiment": "Attendance / Greeting"}},
+      {{"id": 1, "sentiment": "Positive"}},
+      {{"id": 2, "sentiment": "Negative"}},
+      {{"id": 3, "sentiment": "Neutral - Discussion"}}
     ]
     Do not add any markdown, code blocks (e.g. ```json), or preamble outside the JSON array.
     """
@@ -189,7 +192,7 @@ def analyze_sentiment_gemini_batch(messages, api_key, model_name):
         response = requests.post(url, json=payload, headers=headers, timeout=30)
         if response.status_code != 200:
             print(f"    [Gemini Error] API failed (Code: {response.status_code}): {response.text}")
-            return ["Neutral"] * len(messages)
+            return ["Neutral - Discussion"] * len(messages)
             
         res_json = response.json()
         candidate_text = res_json['candidates'][0]['content']['parts'][0]['text']
@@ -201,17 +204,25 @@ def analyze_sentiment_gemini_batch(messages, api_key, model_name):
         # Generate aligned output list
         labels = []
         for idx in range(len(messages)):
-            label = sentiment_map.get(idx, "Neutral")
-            # Clean and normalize label case
-            label = label.strip().title()
-            if label not in ["Positive", "Negative", "Neutral"]:
-                label = "Neutral"
+            raw_label = sentiment_map.get(idx, "Neutral - Discussion")
+            if not isinstance(raw_label, str):
+                raw_label = "Neutral - Discussion"
+                
+            norm = raw_label.lower().strip()
+            if "positive" in norm:
+                label = "Positive"
+            elif "negative" in norm:
+                label = "Negative"
+            elif "attendance" in norm or "greeting" in norm:
+                label = "Attendance / Greeting"
+            else:
+                label = "Neutral - Discussion"
             labels.append(label)
         return labels
         
     except Exception as e:
         print(f"    [Gemini Error] Exception during classification batch: {e}")
-        return ["Neutral"] * len(messages)
+        return ["Neutral - Discussion"] * len(messages)
 
 # -----------------------------------------------------------------------------
 # CORE YOUTUBE INTERNAL API INTERACTION
