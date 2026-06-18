@@ -406,7 +406,7 @@ if not df.empty:
     pos_pct = (pos_count / total_chats * 100) if total_chats > 0 else 0
     neg_pct = (neg_count / total_chats * 100) if total_chats > 0 else 0
     
-    col_kpi1, col_kpi2, col_kpi3, col_kpi4 = st.columns(4)
+    col_kpi1, col_kpi2, col_kpi3 = st.columns(3)
     with col_kpi1:
         st.metric(
             label=t["kpi1_label"], 
@@ -415,17 +415,11 @@ if not df.empty:
         )
     with col_kpi2:
         st.metric(
-            label=t["kpi_present_label"], 
-            value=f"{attendance_count:,}",
-            help=t["kpi_present_help"]
-        )
-    with col_kpi3:
-        st.metric(
             label=t["kpi2_label"], 
             value=f"{pos_pct:.1f}%",
             help=t["kpi2_help"]
         )
-    with col_kpi4:
+    with col_kpi3:
         st.metric(
             label=t["kpi3_label"], 
             value=f"{neg_pct:.1f}%",
