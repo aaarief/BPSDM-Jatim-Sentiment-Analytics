@@ -461,8 +461,8 @@ if not df.empty:
             )
             fig_donut.update_traces(
                 textposition='inside',
-                textinfo='percent+label',
-                textfont_size=13
+                textinfo='percent',
+                textfont_size=24
             )
             fig_donut.update_layout(
                 paper_bgcolor='rgba(0,0,0,0)',
