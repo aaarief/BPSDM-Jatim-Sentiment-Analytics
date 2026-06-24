@@ -459,10 +459,16 @@ if not df.empty:
                 color_discrete_map=color_map,
                 hole=0.45
             )
+            fig_donut.update_traces(
+                textposition='inside',
+                textinfo='percent+label',
+                textfont_size=13
+            )
             fig_donut.update_layout(
                 paper_bgcolor='rgba(0,0,0,0)',
                 plot_bgcolor='rgba(0,0,0,0)',
-                legend=dict(font=dict(color="#ffffff")),
+                font=dict(size=13, color="#ffffff"),
+                legend=dict(font=dict(size=13, color="#ffffff")),
                 margin=dict(t=20, b=20, l=20, r=20)
             )
             st.plotly_chart(fig_donut, use_container_width=True)
