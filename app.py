@@ -490,7 +490,7 @@ if not df.empty:
                 paper_bgcolor='rgba(0,0,0,0)',
                 plot_bgcolor='rgba(0,0,0,0)',
                 font=dict(color="#ffffff"),
-                xaxis=dict(showgrid=False, title=None, tickfont=dict(size=10)),
+                xaxis=dict(showgrid=False, title=None, tickfont=dict(size=13)),
                 yaxis=dict(showgrid=True, gridcolor="#222533", range=[0, 100]),
                 legend=dict(font=dict(color="#ffffff")),
                 margin=dict(t=20, b=20, l=20, r=20)
