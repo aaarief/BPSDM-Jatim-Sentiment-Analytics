@@ -576,8 +576,8 @@ if not df.empty:
                 fig_neg_bar.update_layout(
                     paper_bgcolor='rgba(0,0,0,0)',
                     plot_bgcolor='rgba(0,0,0,0)',
-                    xaxis=dict(showgrid=False, tickfont=dict(color="#ffffff")),
-                    yaxis=dict(showgrid=False, tickfont=dict(color="#ffffff"), categoryorder="total ascending"),
+                    xaxis=dict(showgrid=False, tickfont=dict(color="#ffffff", size=13)),
+                    yaxis=dict(showgrid=False, tickfont=dict(color="#ffffff", size=13), categoryorder="total ascending"),
                     coloraxis_showscale=False,
                     margin=dict(t=10, b=10, l=10, r=10)
                 )
