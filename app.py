@@ -308,6 +308,20 @@ def format_time_offset(seconds):
     except Exception:
         return "00:00"
 
+def simplify_title(title):
+    match = re.search(r'(ASN Belajar Seri \d+)\s*\|\s*(\d{4})', title, re.IGNORECASE)
+    if match:
+        return f"{match.group(1)} {match.group(2)}"
+    if '|' in title:
+        parts = title.split('|')
+        series = parts[0].strip()
+        year_match = re.search(r'\b\d{4}\b', parts[1])
+        if year_match:
+            return f"{series} {year_match.group(0)}"
+        return series
+    return title
+
+
 # -----------------------------------------------------------------------------
 # STOPWORDS & WORD FREQUENCY CALCULATOR
 # -----------------------------------------------------------------------------
@@ -460,6 +474,7 @@ if not df.empty:
         if total_chats > 0:
             # Group by Video Title and Sentiment, calculate percentage
             comp_df = filtered_df.groupby(["Video Title", "Sentiment_Display"]).size().reset_index(name="Count")
+            comp_df["Video Title"] = comp_df["Video Title"].apply(simplify_title)
             comp_df["Percentage"] = comp_df.groupby("Video Title")["Count"].transform(lambda x: (x / x.sum()) * 100)
             
             fig_comp = px.bar(
