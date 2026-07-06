@@ -188,41 +188,62 @@ def analyze_sentiment_gemini_batch(messages, api_key, model_name):
         }
     }
     
-    try:
-        response = requests.post(url, json=payload, headers=headers, timeout=30)
-        if response.status_code != 200:
-            print(f"    [Gemini Error] API failed (Code: {response.status_code}): {response.text}")
-            return ["Neutral - Discussion"] * len(messages)
+    max_retries = 5
+    backoff_factor = 2.0
+    
+    for attempt in range(max_retries):
+        try:
+            response = requests.post(url, json=payload, headers=headers, timeout=30)
             
-        res_json = response.json()
-        candidate_text = res_json['candidates'][0]['content']['parts'][0]['text']
-        results = json.loads(candidate_text.strip())
-        
-        # Build index mapping for sentiment values
-        sentiment_map = {item['id']: item['sentiment'] for item in results}
-        
-        # Generate aligned output list
-        labels = []
-        for idx in range(len(messages)):
-            raw_label = sentiment_map.get(idx, "Neutral - Discussion")
-            if not isinstance(raw_label, str):
-                raw_label = "Neutral - Discussion"
+            if response.status_code == 429:
+                wait_time = backoff_factor * (2 ** attempt)
+                print(f"    [Gemini Rate Limit] 429 Too Many Requests. Retrying in {wait_time}s (Attempt {attempt+1}/{max_retries})...")
+                time.sleep(wait_time)
+                continue
                 
-            norm = raw_label.lower().strip()
-            if "positive" in norm:
-                label = "Positive"
-            elif "negative" in norm:
-                label = "Negative"
-            elif "attendance" in norm or "greeting" in norm:
-                label = "Attendance / Greeting"
+            if response.status_code != 200:
+                print(f"    [Gemini Error] API failed (Code: {response.status_code}): {response.text}")
+                if response.status_code in [500, 503, 504]:
+                    wait_time = backoff_factor * (2 ** attempt)
+                    time.sleep(wait_time)
+                    continue
+                return ["Neutral - Discussion"] * len(messages)
+                
+            res_json = response.json()
+            candidate_text = res_json['candidates'][0]['content']['parts'][0]['text']
+            results = json.loads(candidate_text.strip())
+            
+            # Build index mapping for sentiment values
+            sentiment_map = {item['id']: item['sentiment'] for item in results}
+            
+            # Generate aligned output list
+            labels = []
+            for idx in range(len(messages)):
+                raw_label = sentiment_map.get(idx, "Neutral - Discussion")
+                if not isinstance(raw_label, str):
+                    raw_label = "Neutral - Discussion"
+                    
+                norm = raw_label.lower().strip()
+                if "positive" in norm:
+                    label = "Positive"
+                elif "negative" in norm:
+                    label = "Negative"
+                elif "attendance" in norm or "greeting" in norm:
+                    label = "Attendance / Greeting"
+                else:
+                    label = "Neutral - Discussion"
+                labels.append(label)
+            return labels
+            
+        except (requests.exceptions.RequestException, json.JSONDecodeError, KeyError, IndexError) as e:
+            print(f"    [Gemini Error] Exception during classification batch (Attempt {attempt+1}): {e}")
+            if attempt < max_retries - 1:
+                wait_time = backoff_factor * (2 ** attempt)
+                time.sleep(wait_time)
             else:
-                label = "Neutral - Discussion"
-            labels.append(label)
-        return labels
-        
-    except Exception as e:
-        print(f"    [Gemini Error] Exception during classification batch: {e}")
-        return ["Neutral - Discussion"] * len(messages)
+                return ["Neutral - Discussion"] * len(messages)
+                
+    return ["Neutral - Discussion"] * len(messages)
 
 # -----------------------------------------------------------------------------
 # CORE YOUTUBE INTERNAL API INTERACTION
@@ -461,7 +482,7 @@ def main():
         sentiments.extend(batch_results)
         
         # Brief sleep to stay safe from the 15 Requests Per Minute limit
-        time.sleep(1.0)
+        time.sleep(2.0)
         
     # Assign the results back to the DataFrame
     df['Sentiment'] = sentiments
