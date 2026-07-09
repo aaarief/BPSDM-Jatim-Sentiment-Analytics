@@ -122,13 +122,28 @@ def get_available_flash_model(api_key):
             for m in models_list:
                 name = m.get("name", "")
                 methods = m.get("supportedGenerationMethods", [])
-                if "flash" in name.lower() and "generateContent" in methods:
+                if "generateContent" in methods:
                     model_id = name.split("/")[-1]
-                    flash_models.append(model_id)
+                    if "flash" in model_id.lower():
+                        flash_models.append(model_id)
+            
             if flash_models:
-                flash_models.sort(reverse=True)
-                selected = flash_models[0]
-                print(f"    [Gemini Info] Found available Flash models: {flash_models}. Selected: {selected}")
+                # Prioritize stable gemini-1.5-flash
+                for fm in flash_models:
+                    if fm == "gemini-1.5-flash":
+                        print(f"    [Gemini Info] Found stable Flash model: {fm}")
+                        return fm
+                
+                # Filter out preview models
+                stable_flash = [m for m in flash_models if "preview" not in m.lower()]
+                if stable_flash:
+                    stable_flash.sort(reverse=True)
+                    selected = stable_flash[0]
+                else:
+                    flash_models.sort(reverse=True)
+                    selected = flash_models[0]
+                    
+                print(f"    [Gemini Info] Selected model: {selected}")
                 return selected
     except Exception as e:
         print(f"    [Gemini Warning] Could not retrieve available models: {e}")
@@ -189,7 +204,7 @@ def analyze_sentiment_gemini_batch(messages, api_key, model_name):
     }
     
     max_retries = 5
-    backoff_factor = 2.0
+    backoff_factor = 5.0
     
     for attempt in range(max_retries):
         try:
@@ -482,7 +497,7 @@ def main():
         sentiments.extend(batch_results)
         
         # Brief sleep to stay safe from the 15 Requests Per Minute limit
-        time.sleep(2.0)
+        time.sleep(4.0)
         
     # Assign the results back to the DataFrame
     df['Sentiment'] = sentiments

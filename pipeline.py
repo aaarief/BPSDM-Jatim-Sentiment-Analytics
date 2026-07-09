@@ -98,9 +98,22 @@ def get_available_flash_model(api_key):
             for m in models_list:
                 name = m.get("name", "")
                 methods = m.get("supportedGenerationMethods", [])
-                if "flash" in name.lower() and "generateContent" in methods:
+                if "generateContent" in methods:
                     model_id = name.split("/")[-1]
-                    flash_models.append(model_id)
+                    if "flash" in model_id.lower():
+                        flash_models.append(model_id)
+            
+            # Prioritize stable gemini-1.5-flash
+            for fm in flash_models:
+                if fm == "gemini-1.5-flash":
+                    return fm
+                    
+            # Filter out preview models as they have extremely low rate limits (free tier)
+            stable_flash = [m for m in flash_models if "preview" not in m.lower()]
+            if stable_flash:
+                stable_flash.sort(reverse=True)
+                return stable_flash[0]
+                
             if flash_models:
                 flash_models.sort(reverse=True)
                 return flash_models[0]
@@ -147,7 +160,7 @@ def analyze_sentiment_gemini_batch(messages, api_key, model_name):
     }
     
     max_retries = 5
-    backoff_factor = 2.0
+    backoff_factor = 5.0
     
     for attempt in range(max_retries):
         try:
@@ -314,36 +327,43 @@ def update_google_sheet(df, spreadsheet_name):
         print("[Sheet Warning] GOOGLE_SHEETS_CREDENTIALS not set. Skipping sheet upload.")
         return False
         
-    try:
-        import gspread
-        from google.oauth2.service_account import Credentials
-        
-        # Parse Credentials JSON
-        creds_dict = json.loads(creds_json)
-        scopes = ['https://www.googleapis.com/auth/spreadsheets', 'https://www.googleapis.com/auth/drive']
-        creds = Credentials.from_service_account_info(creds_dict, scopes=scopes)
-        client = gspread.authorize(creds)
-        
-        # Open / Create spreadsheet
+    import gspread
+    from google.oauth2.service_account import Credentials
+    
+    # Parse Credentials JSON
+    creds_dict = json.loads(creds_json)
+    scopes = ['https://www.googleapis.com/auth/spreadsheets', 'https://www.googleapis.com/auth/drive']
+    creds = Credentials.from_service_account_info(creds_dict, scopes=scopes)
+    
+    max_retries = 3
+    for attempt in range(max_retries):
         try:
-            sh = client.open(spreadsheet_name)
-        except gspread.exceptions.SpreadsheetNotFound:
-            print(f"[Sheet Info] Sheet '{spreadsheet_name}' not found. Creating it...")
-            sh = client.create(spreadsheet_name)
-            print(f"[Sheet Warning] Created new sheet. You must share it with your personal email address from the Google Drive UI to see it.")
+            client = gspread.authorize(creds)
             
-        # Get first worksheet
-        worksheet = sh.get_worksheet(0)
-        worksheet.clear()
-        
-        # Format the df headers and values
-        data = [df.columns.values.tolist()] + df.values.tolist()
-        worksheet.update('A1', data)
-        print(f"[Sheet Info] Successfully wrote {len(df)} rows to Google Sheet: {spreadsheet_name}")
-        return True
-    except Exception as e:
-        print(f"[Sheet Error] Failed to update Google Sheet: {e}")
-        return False
+            # Open / Create spreadsheet
+            try:
+                sh = client.open(spreadsheet_name)
+            except gspread.exceptions.SpreadsheetNotFound:
+                print(f"[Sheet Info] Sheet '{spreadsheet_name}' not found. Creating it...")
+                sh = client.create(spreadsheet_name)
+                print(f"[Sheet Warning] Created new sheet. You must share it with your personal email address from the Google Drive UI to see it.")
+                
+            # Get first worksheet
+            worksheet = sh.get_worksheet(0)
+            worksheet.clear()
+            
+            # Format the df headers and values
+            data = [df.columns.values.tolist()] + df.values.tolist()
+            worksheet.update('A1', data)
+            print(f"[Sheet Info] Successfully wrote {len(df)} rows to Google Sheet: {spreadsheet_name}")
+            return True
+        except Exception as e:
+            print(f"[Sheet Warning] Attempt {attempt+1}/{max_retries} failed to update Google Sheet: {e}")
+            if attempt < max_retries - 1:
+                time.sleep(5.0)
+            else:
+                print(f"[Sheet Error] Failed to update Google Sheet after {max_retries} attempts.")
+                return False
 
 # -----------------------------------------------------------------------------
 # PIPELINE EXECUTION
@@ -414,7 +434,7 @@ def main():
         batch = comments[i:i+batch_size]
         batch_sentiments = analyze_sentiment_gemini_batch(batch, gemini_key, model_name)
         sentiments.extend(batch_sentiments)
-        time.sleep(2.0)
+        time.sleep(4.0)
         
     df["Sentiment"] = sentiments
     
